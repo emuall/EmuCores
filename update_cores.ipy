@@ -3,26 +3,47 @@ import pathlib
 
 # Uncomment the cores that require an update
 cores = [
-    #"stella",
-    #"fceumm",
-    #"snes9x",
-    #"genesis_plus_gx",
-    #"gambatte",
-    #"melonds",
-    #"mgba",
-    #"mupen64plus_next_gles3",
-    #"pcsx_rearmed",
-    #"ppsspp",
-    #"fbneo",
-    #"desmume",
+    "stella",
+    "fceumm",
+    "snes9x",
+    "genesis_plus_gx",
+    "gambatte",
+    "melonds",
+    "mgba",
+    "mupen64plus_next_gles3",
+    "fbneo",
+    "desmume",
+    "prosystem",
+    "handy",
+    "mednafen_pce_fast",
+    "dosbox_pure",
+    "mednafen_ngp",
+    "mednafen_wswan",
+    "mednafen_saturn",
+    "picodrive",
+    "mame2000",
+    "mame2003",
     "mame2003_plus",
-    #"prosystem",
-    #"handy",
-    #"mednafen_pce_fast",
-    #"dosbox_pure",
-    #"mednafen_ngp",
-    #"mednafen_wswan"
-    #"citra"
+    "mame2010",
+    "mamearcade",
+    "ppsspp",
+#    "ppsspp_12",
+#    "ppsspp_13",
+#    "ppsspp_14",
+#    "ppsspp_15",
+#    "ppsspp_16",
+     "dolphin",
+    "citra",
+#     "mame4droid",
+    "play",
+    "yabause",
+    "yabasanshiro",
+    "mednafen_psx_hw",
+    "mednafen_psx",
+    "swanstation",
+    "pcsx_rearmed",
+    "parallel_n64",
+    "flycast"
 ]
 
 archs = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
@@ -40,7 +61,6 @@ delivery_on_demand = """
 
 manifest_content = """
 <manifest xmlns:dist="http://schemas.android.com/apk/distribution"
-    package="com.swordfish.core.%s"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
@@ -64,19 +84,29 @@ plugins {
 }
 
 android {
+    namespace = "top.aio51.play.core.%s"
     defaultConfig {
-        missingDimensionStrategy("opensource", "play")
-        missingDimensionStrategy("cores", "dynamic")
+        missingDimensionStrategy("cores", "google")
+        missingDimensionStrategy("opensource", getSource())
     }
-    packagingOptions {
-        doNotStrip("*/*/*_libretro_android.so")
+    packaging {
+        jniLibs{
+            keepDebugSymbols.add("*/*/*_libretro_android.so")
+        }
     }
 }
 
 dependencies {
-    implementation(project(":lemuroid-app"))
+    implementation(project(":app"))
     implementation(kotlin(deps.libs.kotlin.stdlib))
 }
+
+fun getSource(): String {
+    println("Dynamic features: " + gradle.startParameter.taskRequests.toString())
+    val source = gradle.startParameter.taskRequests[0].args[0].replace(":app:assemble","").replace(":app:bundle","").replace("assemble","").replace("bundle","").replace("Google","").replace("Git","").replace("Debug","").replace("Release","").lowercase()
+    return source.toString()
+}
+
 """
 
 def write_file(chunks, content):
@@ -89,12 +119,12 @@ for core_name in cores:
     #! rm -r $core_folder
     core = core_name + "_libretro_android.so.zip"
     so_name = core.replace(".zip", "")
-    core_folder = "lemuroid_core_" + core_name
+    core_folder = "core_" + core_name
 
     install_time = delivery_on_demand
 
-    write_file([core_folder, "build.gradle.kts"], gradle_content)
-    write_file([core_folder, "src", "main", "AndroidManifest.xml"], manifest_content % (core_name, core_name, install_time))
+    write_file([core_folder, "build.gradle.kts"], gradle_content % (core_name))
+    write_file([core_folder, "src", "main", "AndroidManifest.xml"], manifest_content % (core_name, install_time))
 
     for arch in archs:
         ! wget https://buildbot.libretro.com/nightly/android/latest/$arch/$core -P $core_folder/src/main/jniLibs/$arch
@@ -102,5 +132,8 @@ for core_name in cores:
         ! rm $core_folder/src/main/jniLibs/$arch/$core
         ! mv $core_folder/src/main/jniLibs/$arch/$so_name $core_folder/src/main/jniLibs/$arch/lib$so_name
         ! rm -f bundled-cores/src/main/jniLibs/$arch/lib$so_name
-        ! ln -s ../../../../../$core_folder/src/main/jniLibs/$arch/lib$so_name bundled-cores/src/main/jniLibs/$arch/lib$so_name
+
+
+
+        #! ln -s ../../../../../$core_folder/src/main/jniLibs/$arch/lib$so_name bundled-cores/src/main/jniLibs/$arch/lib$so_name
 

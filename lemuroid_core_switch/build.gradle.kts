@@ -9,7 +9,7 @@ android {
     namespace = "com.swordfish.core.ns"
     defaultConfig {
         missingDimensionStrategy("cores", "google")
-        missingDimensionStrategy("opensource", getSource())
+        missingDimensionStrategy("opensource", "circle")
     }
     packagingOptions {
         doNotStrip("*/*/*_libretro_android.so")

@@ -9,7 +9,7 @@ android {
     namespace = "com.swordfish.core.ppsspp_17"
     defaultConfig {
         missingDimensionStrategy("cores", "google")
-        missingDimensionStrategy("opensource", getSource())
+        missingDimensionStrategy("opensource", "circle")
     }
     packagingOptions {
         doNotStrip("*/*/*_libretro_android.so")
@@ -17,7 +17,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":lemuroid-app"))
+    implementation(project(":app"))
     implementation(kotlin(deps.libs.kotlin.stdlib))
 }
 
